@@ -65,7 +65,7 @@ class MouseCoordinateRecorder:
 class AutoClicker:
     """自动点击器"""
     
-    def __init__(self, coordinates: List[Tuple[int, int]], interval: float = 1.0):
+    def __init__(self, coordinates: List[Tuple[int, int, int]]):
         """
         初始化自动点击器
         
@@ -74,7 +74,6 @@ class AutoClicker:
             interval: 每次点击之间的时间间隔（秒）
         """
         self.coordinates = coordinates
-        self.interval = interval
         self.running = False
         self.paused = False
         self.click_thread = None
@@ -114,7 +113,7 @@ class AutoClicker:
         click_count = 0
         while self.running:
             if not self.paused:
-                for i, (x, y) in enumerate(self.coordinates):
+                for i, (x, y, z) in enumerate(self.coordinates):
                     if not self.running:
                         break
                     
@@ -126,9 +125,9 @@ class AutoClicker:
                     
                     pyautogui.click(x, y)
                     click_count += 1
-                    print(f"点击位置 {i+1}/{len(self.coordinates)}: ({x}, {y}) - 第 {click_count} 次点击", end='\r')
+                    print(f"点击位置 {i+1}/{len(self.coordinates)}: ({x}, {y}) - 间隔{z}毫秒，第 {click_count} 次点击", end='\r')
                     
-                    time.sleep(self.interval)
+                    time.sleep(z / 1000)
             else:
                 time.sleep(0.1)
 
@@ -172,7 +171,7 @@ class HotkeyController:
             pass
 
 
-def load_coordinates(filename='coordinates.json') -> List[Tuple[int, int]]:
+def load_coordinates(filename='coordinates.json') -> List[Tuple[int, int, int]]:
     """从文件加载坐标"""
     if not os.path.exists(filename):
         return []
@@ -216,15 +215,15 @@ def main():
                 continue
             
             print(f"\n已加载 {len(coordinates)} 个坐标点:")
-            for i, (x, y) in enumerate(coordinates, 1):
-                print(f"  {i}. ({x}, {y})")
+            for i, (x, y, z) in enumerate(coordinates, 1):
+                print(f"  {i}. ({x}, {y}, {z})")
             
-            try:
-                interval = float(input("\n请输入点击间隔时间（秒）[默认1.0]: ").strip() or "1.0")
-            except ValueError:
-                interval = 1.0
+            # try:
+            #     interval = float(input("\n请输入点击间隔时间（秒）[默认1.0]: ").strip() or "1.0")
+            # except ValueError:
+            #     interval = 1.0
             
-            auto_clicker = AutoClicker(coordinates, interval)
+            auto_clicker = AutoClicker(coordinates)
             controller = HotkeyController(auto_clicker)
             controller.start_listening()
         
